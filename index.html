@@ -1,9 +1,10 @@
 <!DOCTYPE html> 
 <html lang="ko">
 <head>
+    <!---6월 12일 오전9시 17분, 드래그 및 텍스트 선택 전면 차단--->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EBS 세법 전략 센터</title>
+    <title>EBS 세법 전략 센터 (V6.4)</title>
     <style>
         :root { 
             --title-red: #c0392b; 
@@ -15,8 +16,11 @@
             --card-bg: #f9fafb;
             --guide-blue: #2563eb;
             --header-bg: #f1f5f9;
+            --mustard-highlight: #fef3c7; 
+            --ox-stamp: #f43f5e; /* X와 완벽하게 조화를 이루는 차분하고 선명한 도장용 연분홍 소적색 */
         }
-        body { font-family: 'Malgun Gothic', sans-serif; background: var(--light-bg); color: var(--text-main); margin: 0; padding: 15px; line-height: 1.6; }
+        body { font-family: 'Malgun Gothic', sans-serif; background: var(--light-bg); color: var(--text-main); margin: 0; padding: 15px; line-height: 1.6;
+     }
         .container { max-width: 600px; margin: 0 auto; }
         h1 { font-size: 1.4rem; text-align: center; color: var(--title-red); margin-bottom: 10px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
         
@@ -25,11 +29,9 @@
         .page { display: none; }
         .page.active { display: block; }
 
-        /* 1단계: 교재 선택 */
         .book-grid { display: flex; flex-direction: column; gap: 15px; padding-top: 10px; }
         .book-btn { padding: 25px; font-size: 1.2rem; font-weight: bold; color: var(--text-main); background: #fff; border: 2px solid var(--border); border-radius: 15px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
 
-        /* 2단계: 학습장 */
         .header-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .tax-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 15px; }
         .tax-btn { padding: 10px 2px; font-size: 0.85rem; border: 1px solid var(--border); background: #fff; cursor: pointer; border-radius: 6px; font-weight: bold; color: var(--text-sub); }
@@ -41,24 +43,96 @@
 
         .mypick-go-btn { width: 100%; padding: 15px; background: #2d3748; color: white; border: none; border-radius: 10px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 20px; }
 
-        /* 3단계: 마이픽 필터 UI */
-        .filter-container { display: flex; overflow-x: auto; gap: 8px; margin-bottom: 15px; padding-bottom: 5px; white-space: nowrap; -webkit-overflow-scrolling: touch; }
-        .filter-chip { padding: 6px 12px; font-size: 0.8rem; background: #f1f5f9; border: 1px solid var(--border); border-radius: 20px; cursor: pointer; color: var(--text-sub); font-weight: bold; }
+        .scroll-wrapper { 
+            position: relative; 
+            background: #f8fafc; 
+            border: 1px solid var(--border); 
+            border-radius: 10px; 
+            padding: 8px 8px 4px 8px; 
+            margin-bottom: 15px; 
+        }
+        .scroll-hint { 
+            display: flex; 
+            justify-content: space-between; 
+            font-size: 0.75rem; 
+            color: #94a3b8; 
+            margin-bottom: 5px; 
+            padding: 0 4px; 
+            font-weight: bold; 
+        }
+        .filter-container { 
+            display: flex; 
+            overflow-x: auto; 
+            gap: 8px; 
+            padding-bottom: 8px; 
+            white-space: nowrap; 
+            -webkit-overflow-scrolling: touch; 
+        }
+
+        .filter-container::-webkit-scrollbar {
+            height: 5px !important;
+            display: block !important;
+        }
+        .filter-container::-webkit-scrollbar-track {
+            background: #e2e8f0 !important;
+            border-radius: 10px;
+        }
+        .filter-container::-webkit-scrollbar-thumb {
+            background: #94a3b8 !important;
+            border-radius: 10px;
+        }
+
+        .filter-chip { display: inline-block; padding: 6px 12px; font-size: 0.8rem; background: #fff; border: 1px solid var(--border); border-radius: 20px; cursor: pointer; color: var(--text-sub); font-weight: bold; }
         .filter-chip.active { background: var(--title-red); color: white; border-color: var(--title-red); }
 
-        /* 🔥 다중 세목 바가 화면 너비 100%를 정확히 차지하고 아래위로 정렬되도록 CSS 구조 수정 */
         .tax-group-header { background: var(--header-bg); padding: 10px 15px; border-radius: 8px; font-weight: bold; color: #334155; margin: 25px 0 10px; font-size: 0.95rem; border-left: 5px solid var(--title-red); display: flex !important; justify-content: space-between !important; align-items: center !important; width: 100% !important; box-sizing: border-box !important; clear: both; }
 
-        .card { background: var(--card-bg); border-radius: 12px; padding: 18px; margin-bottom: 15px; color: var(--text-main); border: 1px solid var(--border); cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.05); clear: both; }
+        .card { background: var(--card-bg); border-radius: 12px; padding: 18px; margin-bottom: 15px; color: var(--text-main); border: 1px solid var(--border); box-shadow: 0 2px 5px rgba(0,0,0,0.05); clear: both; text-align: left; }
         .q-text { font-size: 1.05rem; color: var(--text-main); margin-bottom: 12px; font-weight: bold; }
-        .answer-area { display: none; margin-top: 15px; padding-top: 15px; border-top: 1px dashed var(--border); }
-        .answer-area.show { display: block; }
-        .option-item { padding: 4px 0; color: var(--text-sub); font-size: 0.95rem; }
-        .correct-label { color: #059669; font-weight: bold; margin-top: 8px; display: block; }
-        .exp-box { background: #f0f9ff; padding: 12px; border-radius: 8px; font-size: 0.9rem; color: #1e40af; border-left: 4px solid var(--point-sky); margin-top: 12px; }
-        .video-btn { display: inline-block; margin-top: 10px; padding: 8px 15px; background: #e53e3e; color: white; text-decoration: none; border-radius: 6px; font-size: 0.85rem; font-weight: bold; }
+        
+        .option-list { display: flex; flex-direction: column; gap: 6px; }
+        .option-item { position: relative; padding: 3px 0 3px 28px; color: var(--text-sub); font-size: 0.95rem; cursor: pointer; min-height: 24px; }
+        
+        .opt-num-wrapper { position: absolute; left: 0; top: 3px; width: 22px; height: 22px; }
+        .opt-num { font-weight: bold; font-size: 0.95rem; position: absolute; left: 0; top: 0; }
+
+        .ox-badge { 
+            position: absolute; 
+            display: none; 
+            z-index: 2; 
+            line-height: 1; 
+            opacity: 0.85; 
+        }
+        
+        /* 🚨 [마침표 착시 교정 완료] 
+           기존 -0.5px에서 왼쪽으로 2.3픽셀 더 당겨서 'left: -2.8px'로 정밀 튜닝! 
+           이제 마침표를 배제하고 오직 숫자 몸통 정중앙에 완벽하게 겹칩니다. */
+        .ox-badge.o-type {
+            display: none; 
+            left: -2.8px;     
+            top: 1.5px;       
+            width: 15px;      
+            height: 15px;     
+            border: 2.6px solid var(--ox-stamp); 
+            border-radius: 50%; 
+        }
+
+        /* 🔴 X(오답): 최고의 조화를 보여주는 스펙 고정 */
+        .ox-badge.x-type {
+            left: -3px; 
+            top: 1px;   
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--ox-stamp);
+        }
+
+        .option-item.show-o .ox-badge.o-type { display: block !important; }
+        .option-item.show-x .ox-badge.x-type { display: block !important; }
+
         .empty-msg { text-align: center; color: #94a3b8; padding: 50px; border: 1px dashed var(--border); border-radius: 12px; }
         .nav-btn { padding: 5px 10px; font-size: 0.8rem; background: #718096; color: white; border: none; border-radius: 4px; cursor: pointer; }
+
+        .hl-mustard { background-color: var(--mustard-highlight) !important; border-radius: 3px; display: inline; }
     </style>
 </head>
 <body>
@@ -93,12 +167,18 @@
     <div id="page-3" class="page">
         <div class="header-box">
             <h2 style="margin:0; font-size:1.1rem; color:var(--title-red);">🚨 My Pick 보관함</h2>
+            <button onclick="clearAllUserData()" style="padding: 5px 10px; font-size: 0.8rem; background: #718096; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">🔄 전체 데이터 초기화</button>
         </div>
-        <div class="step-guide">📍 선택한 세목의 문제를 먼저 보여드립니다.</div>
         
-        <div id="filter-tabs" class="filter-container"></div>
-        
-        <div id="mypick-content"></div>
+        <div class="scroll-wrapper">
+            <div class="scroll-hint">
+                <span>세목 필터 단추</span>
+                <span>옆으로 밀어보기 ➔</span>
+            </div>
+            <div id="filter-tabs" class="filter-container"></div>
+        </div>
+
+        <div id="mypick-content" onmouseup="applyHighlight()" ontouchend="applyHighlight()"></div>
         
         <button onclick="showPage(2)" style="width: 100%; padding: 15px; margin-top: 20px; background: #eff6ff; color: #1e293b; border: 2px solid #93c5fd; border-radius: 12px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 6px rgba(59, 130, 246, 0.05);">
             ◀ 문제 목록 화면으로 돌아가기
@@ -106,192 +186,6 @@
     </div>
 </div>
 
-<script>
-    let currentBookPrefix = ''; 
-    let currentData = [];
-    let myPickData = [];
-    let currentTaxName = '조세총론'; 
-    let activeFilter = '전체';
-
-    function showPage(num) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById(`page-${num}`).classList.add('active');
-    }
-
-    function openStep2(prefix, name) {
-        currentBookPrefix = prefix;
-        document.getElementById('view-book-name').innerText = name;
-        showPage(2);
-        loadTax('jo', document.querySelector('.tax-btn'), '조세총론');
-    }
-
-    async function loadTax(type, btn, taxName) {
-        document.querySelectorAll('.tax-btn').forEach(b => b.classList.remove('active'));
-        if(btn) btn.classList.add('active');
-        currentTaxName = taxName; 
-
-        const panel = document.getElementById('num-panel');
-        panel.innerHTML = '<div style="grid-column:span 6; text-align:center; padding:20px;">자료 확인 중...</div>';
-        const fullKey = `${currentBookPrefix}_${type}`;
-        try {
-            const res = await fetch(`/api/questions?type=${fullKey}&t=${Date.now()}`);
-            const data = await res.json();
-            currentData = Array.isArray(data) ? data : (data[fullKey] || []); 
-            renderNumbers();
-        } catch (e) {
-            panel.innerHTML = '<div style="grid-column:span 6; text-align:center; padding:20px; color:red;">데이터를 불러올 수 없습니다.</div>';
-        }
-    }
-
-   function renderNumbers() {
-        const panel = document.getElementById('num-panel');
-        panel.innerHTML = '';
-        currentData.forEach((item, idx) => {
-            const b = document.createElement('button');
-            b.className = 'num-btn';
-            
-            // 🔥 [버그 수정] 교재구분 + 세목이름 + 문제번호를 조합해서 완벽하게 고유한 ID 생성!
-            // 이렇게 하면 'tax_조세총론1'과 'tax_취득세1'이 완전히 분리되어 따로 움직입니다.
-            const itemKey = `${currentBookPrefix}_${currentTaxName}_${item.no || (idx + 1)}`;
-            
-            if(myPickData.find(p => p.id === itemKey)) b.classList.add('active');
-            
-            b.innerText = item.no || (idx + 1);
-            b.onclick = () => {
-                if (b.classList.contains('active')) {
-                    b.classList.remove('active');
-                    myPickData = myPickData.filter(p => p.id !== itemKey);
-                } else {
-                    b.classList.add('active');
-                    const finalCategory = item.sector || currentTaxName;
-                    myPickData.push({ ...item, id: itemKey, taxCategory: finalCategory, sector: finalCategory });
-                }
-            };
-            panel.appendChild(b);
-        });
-    }
-
-    function goToMyPick() {
-        activeFilter = '전체'; 
-        showPage(3);
-        renderFilterTabs();
-        renderMyPick();
-    }
-
-    function renderFilterTabs() {
-        const tabBox = document.getElementById('filter-tabs');
-        const categories = ['전체', ...new Set(myPickData.map(item => item.sector || item.taxCategory))];
-        
-        tabBox.innerHTML = '';
-        categories.forEach(cat => {
-            const chip = document.createElement('div');
-            chip.className = `filter-chip ${activeFilter === cat ? 'active' : ''}`;
-            chip.innerText = cat;
-            chip.onclick = () => {
-                activeFilter = cat;
-                renderFilterTabs();
-                renderMyPick();
-            };
-            tabBox.appendChild(chip);
-        });
-    }
-
- function renderMyPick() {
-        const room = document.getElementById('mypick-content');
-        if (myPickData.length === 0) {
-            room.innerHTML = '<div class="empty-msg">선택된 문제가 없습니다.</div>';
-            return;
-        }
-
-        // 1. 선택된 필터 탭에 맞춰서 1차 필터링
-        const filteredData = activeFilter === '전체' 
-            ? myPickData 
-            : myPickData.filter(q => (q.sector === activeFilter || q.taxCategory === activeFilter));
-
-        if (filteredData.length === 0) {
-            room.innerHTML = `<div class="empty-msg">'${activeFilter}'에 담긴 문제가 없습니다.</div>`;
-            return;
-        }
-
-        room.innerHTML = '';
-        
-        // 🔥 [세목 순서 버그 수정] 사용자가 클릭한 순서 무시하고 교재 기본 세목 순서대로 정렬 틀 짜기
-        // 실제 기본 세목 탭 순서(조세총론 -> 취득세 -> 등록면허 -> 재산세 -> 종부세 -> 소득세 -> 양도소득)
-        const taxOrder = ['조세총론', '취득세', '등록면허', '재산세', '종부세', '소득세', '양도소득'];
-        const groups = {};
-        
-        // 고른 문제들을 세목별로 바구니에 담기
-        filteredData.forEach(q => {
-            const cat = q.sector || q.taxCategory || "기타";
-            if (!groups[cat]) groups[cat] = [];
-            groups[cat].push(q);
-        });
-
-        // 주입된 세목 중 교재 순서(taxOrder)가 빠른 녀석부터 순서대로 렌더링 시작
-        const sortedCategories = Object.keys(groups).sort((a, b) => {
-            let idxA = taxOrder.indexOf(a);
-            let idxB = taxOrder.indexOf(b);
-            if (idxA === -1) idxA = 99; // 목록에 없는 예외 세목은 맨 뒤로
-            if (idxB === -1) idxB = 99;
-            return idxA - idxB;
-        });
-
-        for (const category of sortedCategories) {
-            const questions = groups[category];
-            
-            // 🔥 [문제 번호 순서 버그 수정] 세목 안에서 2번 보고 1번 골라도 무조건 1번, 2번 순서대로 정렬!
-            questions.sort((a, b) => {
-                // 문제 객체 내부에 진짜 번호(no)가 있으면 쓰고, 없으면 ID나 파일 이름을 뜯어서 숫자로 변환해서 비교합니다.
-                const numA = parseInt(a.no || a.id.split('_').pop()) || 0;
-                const numB = parseInt(b.no || b.id.split('_').pop()) || 0;
-                return numA - numB;
-            });
-
-            // 이하 화면에 폴더 바와 카드를 그리는 로직 (동일)
-            const header = document.createElement('div');
-            header.className = 'tax-group-header';
-            
-            header.innerHTML = `
-                <span>📂 ${category} (${questions.length}문항)</span>
-                <button onclick="showPage(2)" style="background: var(--guide-blue); color: white; border: none; padding: 6px 14px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(37, 99, 235, 0.15); white-space: nowrap;">◀ 문제목록으로</button>
-            `;
-            room.appendChild(header);
-
-            questions.forEach(q => {
-                const div = document.createElement('div');
-                div.className = 'card';
-                div.onclick = () => div.querySelector('.answer-area').classList.toggle('show');
-
-                const content = q.내용 || q.질문 || q.question || "내용 없음";
-                const opts = q.옵션 || q.options || [];
-                const optionsHtml = opts.map(opt => `<div class="option-item">${opt.no}. ${opt.text}</div>`).join('');
-                const videoHtml = q.video_id ? `<a href="https://www.youtube.com/watch?v=${q.video_id}${q.start_time ? '&t='+q.start_time : ''}" target="_blank" class="video-btn" onclick="event.stopPropagation();">📺 강의 영상 보기</a>` : '';
-
-                div.innerHTML = `
-                   <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                        <div class="q-text">${content}</div>
-                        <button onclick="removeQuestion('${q.id}', event)" style="background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; border-radius: 6px; padding: 4px 8px; font-size: 0.8rem; cursor: pointer; font-weight: bold; white-space: nowrap;">삭제 🗑️</button>
-                    </div>
-                    <div class="option-list">${optionsHtml}</div>
-                    <div class="answer-area">
-                        <span class="correct-label">정답: ${q.answer}번</span>
-                        ${q.해설 || q.explanation ? `<div class="exp-box"><strong>해설:</strong> ${q.해설 || q.explanation}</div>` : ''}
-                        ${videoHtml}
-                    </div>
-                `;
-                room.appendChild(div);
-            });
-        }
-    }
-
-    function removeQuestion(id, event) {
-        event.stopPropagation(); 
-        if (confirm("이 문제를 삭제하시겠습니까?")) {
-            myPickData = myPickData.filter(q => q.id !== id);
-            renderMyPick();
-            renderNumbers(); 
-        }
-    }
-</script>
+<script src="strategy-center.js?v=1.0"></script>
 </body>
 </html>
